@@ -217,7 +217,7 @@ function Modal({ code, onclick }) {
         setLoad(true);
         console.log(mail)
         try {
-            const response = await fetch("https://otpverificationapp.vercel.app//sendMail", {
+            const response = await fetch("https://otpverificationapp.vercel.app/sendMail", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -247,10 +247,10 @@ function Modal({ code, onclick }) {
         <div className="absolute h-screen w-full flex justify-center items-center bg-black bg-opacity-75">
             <form action="" onSubmit={(e) => { e.preventDefault(); sendOtp(); }}>
                 <div className=" bg-white w-[300px] p-4 ">
-                    <div className="mb-2"><h2>Please enter your email to receive code.</h2></div>
+                    <div className="mb-2 text-lg font-semibold"><h2>Please enter your email to receive code.</h2></div>
                     <div className=""><input type="email" name="email" id="email" placeholder="example@gmail.com" value={mail} onChange={(e) => setMail(e.target.value)} className="border border-black px-2 rounded-sm text-lg" minLength={12} required /></div>
                     <div className="">
-                        <button className="bg-blue-500 text-white px-4 my-4 text-lg rounded-sm">{load ? "sending.." : "send code"}</button>
+                        <button className="bg-blue-500 text-white px-4 my-4 text-lg rounded-sm">{load ? "sending.." : "confirm"}</button>
                     </div>
                 </div>
             </form>
