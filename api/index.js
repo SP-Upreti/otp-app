@@ -1,24 +1,30 @@
 const express = require('express');
-const app = express();
+const path = require('path');
 const cors = require('cors');
-// const nodemailer = require("nodemailer");
-const sendMail = require("./nodemailer/sendMial")
-app.options('*', cors()); // Enable preflight requests for all routes
+const sendMail = require('./nodemailer/sendMial');
 
-app.use(cors());
 
-const port = 4500;
+const app = express();
+const port = process.env.PORT || 4500;
 const code = 231524;
 
+app.options('*', cors());
+
+// Middleware
+app.use(cors());
 app.use(express.json());
 
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../build')));
+
+// API routes
 app.get('/authenticate', (req, res) => {
     res.json({ code });
 });
 
 app.get("/", (req, res) => {
-    res.send("Hello")
-})
+    res.send("Hello");
+});
 
 app.post("/sendMail", sendMail);
 
@@ -31,6 +37,11 @@ app.post('/verify', (req, res) => {
     }
 });
 
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../build', 'index.html'));
+});
+
+// Start the server
 app.listen(port, () => {
     console.log("Listening on port " + port);
 });
