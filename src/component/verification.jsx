@@ -81,7 +81,7 @@ export default function Verification() {
 
     const verifycode = async (code) => {
         try {
-            const response = await fetch("https://otpverificationapp.vercel.app/verify", {
+            const response = await fetch("https://otpverificationapp.vercel.app//verify", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -163,7 +163,7 @@ export default function Verification() {
             setLoad(false);
         } else {
             setErr(false);
-            setLoad(true); // Set load to true before verification
+            setLoad(true);
             verify(inpData.join(""));
         }
     };
@@ -217,7 +217,7 @@ function Modal({ code, onclick }) {
         setLoad(true);
         console.log(mail)
         try {
-            const response = await fetch("https://server-eight-puce-16.vercel.app/sendMail", {
+            const response = await fetch("https://otpverificationapp.vercel.app//sendMail", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -229,11 +229,11 @@ function Modal({ code, onclick }) {
                 throw new Error('Network response was not ok');
             }
 
-            const result = await response.json(); // Parse JSON response
+            const result = await response.json();
 
             if (result.success) {
                 toast.success("OTP sent");
-                onclick();  // Close modal
+                onclick();
             } else {
                 toast.error("Failed to send OTP");
             }
