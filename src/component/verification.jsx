@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 export default function Verification() {
     const [code, setCode] = useState({
         inp1: "",
@@ -14,7 +17,6 @@ export default function Verification() {
     const [err, setErr] = useState(false);
     const [load, setLoad] = useState(false);
     const [modal, setModal] = useState(false);
-    const [message, setMessage] = useState("");
 
     const inpRefs = [
         useRef(null),
@@ -62,7 +64,7 @@ export default function Verification() {
 
     const fetchApi = async () => {
         try {
-            const url = "https://server-eight-puce-16.vercel.app/authenticate";
+            const url = "https://otpverificationapp.vercel.app/authenticate";
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -72,13 +74,14 @@ export default function Verification() {
             setOtp(data.code);
         } catch (error) {
             console.error("Error fetching OTP:", error);
+            toast.error("Error fetching OTP");
             setErr(true);
         }
     };
 
     const verifycode = async (code) => {
         try {
-            const response = await fetch("https://server-eight-puce-16.vercel.app/verify", {
+            const response = await fetch("https://otpverificationapp.vercel.app/verify", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -97,11 +100,32 @@ export default function Verification() {
                 navigate('/welcome');
             } else {
                 setErr(true);
-                setMessage("Invalid OTP")
+                toast.error("Invalid OTP");
+                setLoad(false)
+                setCode({
+                    inp1: "",
+                    inp2: "",
+                    inp3: "",
+                    inp4: "",
+                    inp5: "",
+                    inp6: ""
+                });
+                inpRefs[0].current.focus();
             }
         } catch (error) {
             console.error("Error verifying code:", error);
             setErr(true);
+            toast.error("Invalid OTP");
+            setLoad(false);
+            setCode({
+                inp1: "",
+                inp2: "",
+                inp3: "",
+                inp4: "",
+                inp5: "",
+                inp6: ""
+            });
+            inpRefs[0].current.focus();
         }
     };
 
@@ -126,15 +150,16 @@ export default function Verification() {
 
         const allDigits = Object.values(inpData).join("");
         if (allDigits.endsWith("7")) {
-            setErr(true)
-            setMessage("Number cannot end with 7")
+            setErr(true);
+            toast.error("Number cannot end with 7");
+            return;
         }
 
         const allNumbers = inpData.every(data => /^[0-9]$/.test(data));
 
         if (!allNumbers) {
             setErr(true);
-            setMessage("Code can only be numbers and cannot be empty")
+            toast.error("Code can only be numbers and cannot be empty");
             setLoad(false);
         } else {
             setErr(false);
@@ -145,12 +170,13 @@ export default function Verification() {
 
     return (
         <div className="relative h-[80vh] lg:h-screen flex justify-center items-center " style={{ boxSizing: "border-box" }}>
+            <ToastContainer />
             <form method="post" onSubmit={(e) => {
                 e.preventDefault();
                 handleSubmit();
             }}>
-                <div className="flex flex-col items-center justify-center gap-4">
-                    <div className="text-2xl font-bold font-serif text-center">Verification Code</div>
+                <div className="flex flex-col items-center justify-center gap-4 border p-10 ">
+                    <div className="text-2xl font-bold font-serif text-center">Enter The Code Below</div>
                     <div className="flex gap-4 items-center">
                         {Array.from({ length: 6 }).map((data, index) => (
                             <input
@@ -161,39 +187,32 @@ export default function Verification() {
                                 onChange={handleInputChange}
                                 onPaste={index === 0 ? handlePaste : null}  // Attach handlePaste to the first input
                                 ref={inpRefs[index]}
-                                className={`border border-black h-[2rem] w-[2rem] px-1 text-center focus:outline-blue-500`}
+                                className={`border border-black h-[2rem] w-[2rem] px-1 text-center focus:text-white focus:outline-blue-500  focus:bg-blue-500`}
                                 maxLength={1}
                                 autoFocus={index === 0}
                             />
                         ))}
                     </div>
-                    {err && (
-                        <p className="text-red-600 font-semibold">{message}</p>
-                    )}
                     <div>
                         <button disabled={load} className="bg-blue-950 text-white px-4 py-1 text-lg rounded-md">
                             {load ? "Verifying..." : "Submit"}
                         </button>
                     </div>
-                    <div className="">
-                        <p className="font-semibold cursor-pointer" onClick={() => { setModal(true) }}>Request OTP</p>
+                    <div className="flex gap-2">
+                        <p>didn't get OTP?</p>
+                        <p className="font-semibold cursor-pointer text-blue-500" onClick={() => { setModal(true) }}>request OTP</p>
                     </div>
                 </div>
             </form>
-            <div className="absolute bottom-[1rem] text-sm">
-                <p>Project created by <a href="https://github.com/SP-Upreti" className="text-green-500 font-bold">Surendra</a></p>
-            </div>
-            {
-                modal && (<Modal code={otp} onclick={() => { setModal(false) }} />)
-            }
+            {modal && (<Modal code={otp} onclick={() => { setModal(false) }} />)}
         </div>
     );
 }
 
-
 function Modal({ code, onclick }) {
     const [mail, setMail] = useState(null);
     const [load, setLoad] = useState(false);
+
     const sendOtp = async () => {
         setLoad(true);
         console.log(mail)
@@ -213,26 +232,28 @@ function Modal({ code, onclick }) {
             const result = await response.json(); // Parse JSON response
 
             if (result.success) {
-                alert("OTP sent");
+                toast.success("OTP sent");
                 onclick();  // Close modal
             } else {
-                alert("Failed to send OTP");
+                toast.error("Failed to send OTP");
             }
         } catch (error) {
             console.error("Error sending OTP:", error);
-            alert("An error occurred while sending OTP");
+            toast.error("Please enter a valid email");
         }
     };
 
     return (
         <div className="absolute h-screen w-full flex justify-center items-center bg-black bg-opacity-75">
-            <div className=" bg-white w-[300px] p-4 ">
-                <div className="mb-2"><h2>Please enter your email to receive code.</h2></div>
-                <div className=""><input type="email" name="email" id="email" placeholder="example@gmail.com" value={mail} onChange={(e) => setMail(e.target.value)} className="border border-black px-2 rounded-sm text-lg" required /></div>
-                <div className="">
-                    <button onClick={sendOtp} className="bg-blue-500 text-white px-4 my-4 text-lg rounded-sm">{load ? "sending.." : "send code"}</button>
+            <form action="" onSubmit={(e) => { e.preventDefault(); sendOtp(); }}>
+                <div className=" bg-white w-[300px] p-4 ">
+                    <div className="mb-2"><h2>Please enter your email to receive code.</h2></div>
+                    <div className=""><input type="email" name="email" id="email" placeholder="example@gmail.com" value={mail} onChange={(e) => setMail(e.target.value)} className="border border-black px-2 rounded-sm text-lg" minLength={12} required /></div>
+                    <div className="">
+                        <button className="bg-blue-500 text-white px-4 my-4 text-lg rounded-sm">{load ? "sending.." : "send code"}</button>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     )
 }
